@@ -1,21 +1,28 @@
 'use strict';
 
-const test = require('tape');
-const client = require('superagent');
 
+var client = require('superagent');
+var restify = require('restify');
 
-test('Verify the test application is running', function (t) {
+var server = restify.createServer();
+
+function runTests(req, response, next) {
     client
         .get('http://purchase-history-test.apps.10.2.2.2.xip.io/healthcheck')
-        .end((err, res) => {
-            t.plan(2);
-            t.ok(res.status === 200, 'Healthcheck responded with 200.');
-            t.ok(res.text.indexOf('Up and running') >= 0, 'Content contained "up and running"')
+        .end(function(err, res) {
+            if(res.status === 200 && res.text.indexOf('Up and running') >= 0) response.send("healthcheck returned success");
+            next();
         });
+}
+
+server.get('/runtests', runTests);
+
+server.listen(8080, function() {
+    console.log('%s listening at %s', server.name, server.url);
 });
 
-test.onFinish(function() {
-    console.log(this.pass);
-    process.exit();
-});
+
+
+
+
 
