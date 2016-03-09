@@ -32,6 +32,13 @@ function reportResults(req, response, next) {
 }
 
 server.get('/', reportResults);
+server.on('NotFound', function (request, response, cb) {
+    console.log('Not Found');
+    console.log(request.method);
+    console.log(request.url);
+    console.log(JSON.stringify(request.rawHeaders));
+    response.send(404, "Not Found.");
+});
 
 server.listen(8080, function() {
     console.log('%s listening at %s', server.name, server.url);
