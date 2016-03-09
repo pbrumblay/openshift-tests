@@ -9,7 +9,8 @@
   },
   "dependencies": {
     "restify": "^4.0.4",
-    "superagent": "^1.7.2"
+    "superagent": "^1.7.2",
+    "tape": "^4.5.1"
   },
   "devDependencies": {}
 }
