@@ -7,7 +7,7 @@ var test = require('tape');
 var server = restify.createServer();
 var testUrl = process.env.TEST_URL;
 
-function runTests() {
+function runTests(cb) {
     var harness = test.createHarness();
     var results = {};
     results.text = "";
@@ -24,19 +24,21 @@ function runTests() {
         .end(function(err, res) {
             t.plan(2);
             t.ok(res.status === 200, 'Healthcheck responded with 200.');
-            t.ok(res.text.indexOf('Up and running') >= 0, 'Content contained "up and running"')
+            t.ok(res.text.indexOf('Up and running') >= 0, 'Content contained "up and running"');
+            cb(results);
         });
     });
 }
 
 //restify endpoint for viewing results.
 function reportResults(req, response, next) {
-    var results = runTests();
-    console.log(results.text);
-    
-    response.setHeader('content-type', 'text/plain');
-    response.send(results);
-    next();
+    runTests(function(results) {
+        console.log(results.text);
+        
+        response.setHeader('content-type', 'text/plain');
+        response.send(results);
+        next();        
+    });
 }
 
 server.get('/', reportResults);
