@@ -5,27 +5,35 @@ var client = require('superagent');
 var restify = require('restify');
 var test = require('tape');
 var server = restify.createServer();
+var testUrl = process.env.TEST_URL;
 
-//tests
-var results = "";
-test.createStream().on('data', function (row) {
-    results = results + row
-});
+function runTests() {
+    var harness = test.createHarness();
+    var results = {};
+    results.text = "";
+    results.harness = harness;
+    
+    //tests
+    harness.createStream().on('data', function (row) {
+        results.text = results.text + row
+    });
 
-
-test('Verify the test application is running', function (t) {
-    client
-        .get('http://purchase-history-test.apps.10.2.2.2.xip.io/healthcheck')
+    harness('Verify the test application is running', function (t) {
+        client
+        .get(testUrl)
         .end(function(err, res) {
             t.plan(2);
             t.ok(res.status === 200, 'Healthcheck responded with 200.');
             t.ok(res.text.indexOf('Up and running') >= 0, 'Content contained "up and running"')
         });
-});
+    });
+}
 
 //restify endpoint for viewing results.
 function reportResults(req, response, next) {
-    console.log(results);
+    var results = runTests();
+    console.log(results.text);
+    
     response.setHeader('content-type', 'text/plain');
     response.send(results);
     next();
