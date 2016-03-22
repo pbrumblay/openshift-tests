@@ -8,11 +8,11 @@ var server = restify.createServer();
 var testUrl = process.env.TEST_URL;
 
 function runTests(cb) {
+    console.log('running tests...');
     var harness = test.createHarness();
     var results = {};
     results.text = "";
-    results.harness = harness;
-    
+
     //tests
     harness.createStream().on('data', function (row) {
         results.text = results.text + row
@@ -25,6 +25,8 @@ function runTests(cb) {
             t.plan(2);
             t.ok(res.status === 200, 'Healthcheck responded with 200.');
             t.ok(res.text.indexOf('Up and running') >= 0, 'Content contained "up and running"');
+            results.allPassed = t._ok;
+            console.log('tests complete.');
             cb(results);
         });
     });
@@ -33,10 +35,15 @@ function runTests(cb) {
 //restify endpoint for viewing results.
 function reportResults(req, response, next) {
     runTests(function(results) {
+	console.log(JSON.stringify(results));
         console.log(results.text);
-        
+        if(results.allPassed) {
+            response.status(200);
+        } else {
+            response.status(500);
+        }
         response.setHeader('content-type', 'text/plain');
-        response.send(results);
+        response.send(results.text);
         next();        
     });
 }
